@@ -1,7 +1,10 @@
 import pygame
 import time
+import random
+from monsters import *
 
 # Initialize game
+pygame.mixer.init()
 pygame.init()
 
 # Hide system cursor
@@ -36,6 +39,7 @@ font = pygame.font.Font('PixgamerRegular-OVD6A.ttf', 32)
 
 # intro
 def show_intro():
+    
     intro = True
     show_text = True
     last_blink_time = time.time() # last time text visibility was toggled
@@ -68,8 +72,7 @@ def show_intro():
         clock.tick(30)
 
 def main_menu():
-    # Get mouse coordinates
-    
+    main_menu_sound = pygame.mixer.Sound('assets/sounds/main_menu.mp3')
     # Load background image
     background_image = pygame.image.load('assets/images/Background.png')
     background_image = pygame.transform.scale(background_image, (display_width, display_height))
@@ -92,8 +95,11 @@ def main_menu():
     info_rect = info_button.get_rect(topleft=info_button_loc)
     quit_rect = quit_button.get_rect(topleft=quit_button_loc)
 
+    
+
     running = True
     while running:
+        main_menu_sound.play()
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -104,7 +110,10 @@ def main_menu():
                 # Check if click was within button rectangle
                 if play_rect.collidepoint(x,y):
                     print('Start Clicked')
-                    # start_game()  - Start the game!
+                    main_menu_sound.stop()
+                    start_game()  #- Start the game!
+                    running = False
+                    
                 elif options_rect.collidepoint(x,y):
                     print('Options Clicked')
                     # options() - Load options menu
@@ -128,6 +137,91 @@ def main_menu():
         pygame.display.update()
         # Main Menu FPS
         clock.tick(30)
+
+def start_game():
+    # Load sound
+    level_sound = pygame.mixer.Sound('assets/sounds/level.mp3')
+    level_sound.play()
+     # Load level image
+    level_image = pygame.image.load('assets/level/church.png')
+    level_image = pygame.transform.scale(level_image, (display_width, display_height))
+
+    # Load gun image
+    gun_image = pygame.image.load('assets/gun/gun_normal.png')
+
+    # USEREVENTS
+    SPAWN_MONSTER = pygame.USEREVENT + 0
+    MOVE_MONSTER = pygame.USEREVENT + 1
+
+    # Event signals
+    pygame.time.set_timer(SPAWN_MONSTER, 1000)
+    pygame.time.set_timer(MOVE_MONSTER, 2000)
+
+    # Group of all monster instances
+    monsters = pygame.sprite.Group()
+
+    # List of monster classes
+    monster_classes = [HatMan, Nun]
+
+    # Get monster position and display them
+    monster_spawn_y = 350
+    monster_spawn_x = 0
+
+    # Set crosshair
+    cursor = pygame.image.load('assets/gun/crosshair.png')
+
+    running = True
+
+    while running:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.type == pygame.K_ESCAPE:
+                    running = False
+            if event.type == SPAWN_MONSTER:
+                print("Spawn event detected")
+                if len(monsters) < 5:
+                    
+                    monster_class = random.choice(monster_classes)
+                    new_monster = monster_class(monster_spawn_x, monster_spawn_y)
+                    monsters.add(new_monster)
+                    print(f"Spawning monster at {new_monster.rect.topleft}")
+                    monster_spawn_x += 50
+                # If it exceeds the display widthx, reset it
+                if monster_spawn_x > display_width:
+                    monster_spawn_x = 0
+                
+                
+            if event.type == MOVE_MONSTER:
+                print("Move event detected")
+                for monster in monsters:
+                    print(f"Moving a monster at {monster.rect.topleft}")
+                    monster.move()
+
+        # Get gun image size
+        gun_width,gun_height = gun_image.get_size()
+        # Get cursor position
+        x,y = pygame.mouse.get_pos()
+        # Get gun position
+        gun_position = (display_width - gun_width,display_height - gun_height)
+
+        # Draw screen contents
+        game_display.fill(black)
+        game_display.blit(level_image, (0,0))
+        game_display.blit(gun_image,gun_position)
+        game_display.blit(cursor, (x,y))
+
+        # Draw all monsters
+        for monster in monsters:
+            monster.draw(game_display)
+        # print(x,y)
+        pygame.display.update()
+        
+        clock.tick(30)
+
 
 show_intro()
 
