@@ -10,7 +10,7 @@ class Monster(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x,y)
         self.move_speed = move_speed
-
+        
         # Resize the image at spawn
         width,height = self.image.get_size()
         self.image = pygame.transform.scale(self.image,(width // 3, height // 3))
@@ -34,7 +34,7 @@ class Monster(pygame.sprite.Sprite):
         # Update rect to match new image size
             self.rect = self.image.get_rect(topleft=self.rect.topleft)
 
-        # If image is bigger than original size,
+        
     
     
     def draw(self,surface):
