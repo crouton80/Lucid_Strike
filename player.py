@@ -9,15 +9,14 @@ class Player:
         self.hp -= damage
         if self.hp == 0 or self.hp < 0:
             self.hp = 0
-            # game_over()
-    
+            
     def reload(self,max_ammo):
         self.ammo = max_ammo
 
     def draw_health_bar(self,surface):
         # Draw health bar
         bar_height = 30
-        bar_width = 100
+        bar_width = self.hp
         border_width = 3
 
         # # Calculate the remaining health length

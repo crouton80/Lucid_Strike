@@ -139,13 +139,84 @@ def main_menu():
         # Main Menu FPS
         clock.tick(30)
 
+def pause_game(level_image):
+    running = True
+    while running:
+        game_display.fill(black)
+        game_display.blit(level_image, (0,0))    
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
+        # Render pause menu contents
+        game_display.blit(level_image, (0,0))  
+        pause_text = font.render("Game has been Paused", True, red)
+        pause_text_rect = pause_text.get_rect()
+        pause_text_rect.center = (display_width // 2, display_height // 2)
+        game_display.blit(pause_text, pause_text_rect)
+        pygame.display.update()
+        clock.tick(30)
+
+
+def format_paragraph(text,x,y,font):
+
+    lines = text.split('\n')
+    # Get the longest line width and total height
+    max_width = max(font.size(line)[0] for line in lines)
+    total_height = sum(font.size(line)[1] for line in lines)
+    # Create the surface
+    text_surface = pygame.Surface((max_width,total_height), pygame.SRCALPHA)
+
+    for index,line in enumerate(lines):
+        line_surface = font.render(line, True, red)
+        text_surface.blit(line_surface, (0,index * font.size(line)[1]))
+
+    # Get rect of text surface
+    text_surface_rect = text_surface.get_rect()
+
+    # Set center of surface
+    text_surface_rect.center = (x, y)
+
+    game_display.blit(text_surface,text_surface_rect)
+
+def game_over():
+    game_over_image = pygame.image.load('assets/images/game_over.png')
+    game_over_image = pygame.transform.scale(game_over_image, (display_width, display_height))
+    # game_over_text = font.render('You wake up butt naked and with a couple of bruises \n around the cheeks and eyes.\n The headache makes you think you\'ve been having a blast \n with you buddies last night but the empty bendaryl \n box says otherwise.',True,red)
+    game_over_text = 'You wake up butt naked and with a couple of bruises \n around the cheeks and eyes.\n The headache makes you think you\'ve been having a blast \n with you buddies last night but the empty bendaryl \n box says otherwise.'
+    # game_over_text_rect = game_over_text.get_rect()
+    # game_over_text_rect.center = (display_width // 1.75, display_height // 1.75)
+    running = True
+    game_over_time = time.time()
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    show_intro()
+                    running = False
+
+        game_display.fill(black)
+        game_display.blit(game_over_image,(0,0))
+        if time.time() - game_over_time > 2:
+            format_paragraph(game_over_text,display_width // 2,display_height // 2,font)
+            
+        pygame.display.update()
+        clock.tick(30)
+            
 
 def start_game():
     # Load health bar
     player = Player(100,30)
     
     # Load sound
+    global level_sound
     level_sound = pygame.mixer.Sound('assets/sounds/level.mp3')
     gun_sound = pygame.mixer.Sound('assets/sounds/gunshot.mp3')
     level_sound.play()
@@ -169,6 +240,9 @@ def start_game():
     pygame.time.set_timer(SPAWN_MONSTER, 1000)
     pygame.time.set_timer(MOVE_MONSTER, 2000)
 
+    # # Load original monster images
+    # nun_image_rect = pygame.image.load('assets/monsters/nun.png').get_rect()
+    # hatman_image_rect = pygame.image.load('assets/monsters/nun.png').get_rect()
     # Group of all monster instances
     monsters = pygame.sprite.Group()
 
@@ -183,19 +257,19 @@ def start_game():
     cursor = pygame.image.load('assets/gun/crosshair.png')
 
     running = True
+    
 
     while running:
         # Update every frame
         game_display.fill(black)
-        game_display.blit(level_image, (0,0))
-
+        game_display.blit(level_image, (0,0))    
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            if event.type == pygame.KEYDOWN:
-                if event.type == pygame.K_ESCAPE:
-                    running = False
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
+                    pause_game(level_image)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 gun_sound.play(maxtime=200)
                 gun_fired_count += 1
@@ -223,14 +297,24 @@ def start_game():
                     monsters.add(new_monster)
                     print(f"Spawning monster at {new_monster.rect.topleft}")
                     monster_spawn_x += 100
-                # If it exceeds the display widthx, reset it
+                # If it exceeds the display width, reset it
                 if monster_spawn_x > display_width:
                     monster_spawn_x = 0
                 
             for monster in monsters:
                 if monster.hp <= 0:
                     monsters.remove(monster)
+                if monster.monster_type == 'Nun' and monster.reached_original_size:
+                    player.take_damage(10)
+                    print('Player took 10 damage')
+                if monster.monster_type == 'HatMan' and monster.reached_original_size:
+                    player.take_damage(20)
+                    print('Player took 20 damage')
 
+            if player.hp <= 0:
+                level_sound.stop()
+                game_over()
+                running = False
             if event.type == MOVE_MONSTER:
                 print("Move event detected")
                 for monster in monsters:
