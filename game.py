@@ -187,7 +187,7 @@ def game_over():
     game_over_image = pygame.image.load('assets/images/game_over.png')
     game_over_image = pygame.transform.scale(game_over_image, (display_width, display_height))
     # game_over_text = font.render('You wake up butt naked and with a couple of bruises \n around the cheeks and eyes.\n The headache makes you think you\'ve been having a blast \n with you buddies last night but the empty bendaryl \n box says otherwise.',True,red)
-    game_over_text = 'You wake up butt naked and with a couple of bruises \n around the cheeks and eyes.\n The headache makes you think you\'ve been having a blast \n with you buddies last night but the empty bendaryl \n box says otherwise.'
+    game_over_text = 'You wake up butt naked and with a couple of bruises \n around the cheeks and eyes.\n The headache makes you think you\'ve been having a blast \n with your buddies last night but the empty benadryl \n box on the nightstand says otherwise.'
     # game_over_text_rect = game_over_text.get_rect()
     # game_over_text_rect.center = (display_width // 1.75, display_height // 1.75)
     running = True
